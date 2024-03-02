@@ -170,7 +170,7 @@ void loop()
 #if defined(T5_47)
                 // Set to wake up by GPIO39
                 esp_sleep_enable_ext1_wakeup(GPIO_SEL_39, ESP_EXT1_WAKEUP_ALL_LOW);
-#elif defined(T5_47_PLUS)
+#elif defined(T5_47_PLUS) || defined(T5_47_PLUS_V2)
                 esp_sleep_enable_ext1_wakeup(GPIO_SEL_21, ESP_EXT1_WAKEUP_ALL_LOW);
 #endif
                 esp_deep_sleep_start();

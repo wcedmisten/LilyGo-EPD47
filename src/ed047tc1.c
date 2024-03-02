@@ -76,11 +76,31 @@ inline static void IRAM_ATTR push_cfg_bit(bool bit)
     }
     fast_gpio_set_hi(CFG_CLK);
 }
+inline static void IRAM_ATTR push_cfg_gpio(gpio_num_t gpio_num,bool bit)
+{
+    gpio_set_direction(EP_STV, GPIO_MODE_OUTPUT);
+    gpio_set_direction(EP_LE, GPIO_MODE_OUTPUT);
+    
+    gpio_set_level(gpio_num,bit);
 
+}
 static void IRAM_ATTR push_cfg(epd_config_register_t *cfg)
 {
     fast_gpio_set_lo(CFG_STR);
+#if defined(T5_47_PLUS_V2)
+    push_cfg_bit(cfg->ep_output_enable);
+    push_cfg_bit(cfg->ep_mode);
+    push_cfg_bit(cfg->ep_scan_direction);
+    push_cfg_bit(cfg->ep_stv);
+    push_cfg_gpio(EP_STV,config_reg.ep_stv);
 
+    push_cfg_bit(cfg->neg_power_enable);
+    push_cfg_bit(cfg->pos_power_enable);
+    push_cfg_bit(cfg->power_disable);
+    push_cfg_bit(cfg->ep_latch_enable);
+    push_cfg_gpio(EP_LE,config_reg.ep_latch_enable);
+
+#else
     // push config bits in reverse order
     push_cfg_bit(cfg->ep_output_enable);
     push_cfg_bit(cfg->ep_mode);
@@ -91,7 +111,7 @@ static void IRAM_ATTR push_cfg(epd_config_register_t *cfg)
     push_cfg_bit(cfg->pos_power_enable);
     push_cfg_bit(cfg->power_disable);
     push_cfg_bit(cfg->ep_latch_enable);
-
+#endif
     fast_gpio_set_hi(CFG_STR);
 }
 

@@ -15,12 +15,12 @@
 
 // #define USING_TOUCH_PANEL
 
-#if defined(T5_47_PLUS)
+#if defined(T5_47_PLUS) || defined(T5_47_PLUS_V2)
 #include "pcf8563.h"
 #include <Wire.h>
 #endif
 
-#if defined(T5_47_PLUS)
+#if defined(T5_47_PLUS) || defined(T5_47_PLUS_V2)
 PCF8563_Class rtc;
 #endif
 
@@ -152,7 +152,7 @@ void loop()
     uint16_t v = analogRead(BATT_PIN);
     float battery_voltage = ((float)v / 4095.0) * 2.0 * 3.3 * (vref / 1000.0);
     String voltage = "➸ Voltage: " + String(battery_voltage) + "V";
-#if defined(T5_47_PLUS)
+#if defined(T5_47_PLUS) || defined(T5_47_PLUS_V2)
     voltage = voltage + String(" (") + rtc.formatDateTime(PCF_TIMEFORMAT_YYYY_MM_DD_H_M_S) + String(")");
 #endif
     Serial.println(voltage);
@@ -160,7 +160,7 @@ void loop()
     Rect_t area = {
         .x = 200,
         .y = 460,
-#if defined(T5_47_PLUS)
+#if defined(T5_47_PLUS) || defined(T5_47_PLUS_V2)
         .width = 700,
 #else
         .width = 320,

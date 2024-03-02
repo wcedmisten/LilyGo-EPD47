@@ -93,7 +93,7 @@ void setup()
         }
     }
     touch.setPins(-1, TOUCH_INT);
-    if (!touch.init(Wire,  TOUCH_SDA, TOUCH_SCL, touchAddress )) {
+    if (!touch.begin(Wire,touchAddress,TOUCH_SDA, TOUCH_SCL)) {
         while (1) {
             Serial.println("Failed to find GT911 - check your wiring!");
             delay(1000);
@@ -196,7 +196,7 @@ void loop()
 #if defined(T5_47)
             // Set to wake up by GPIO39
             esp_sleep_enable_ext1_wakeup(GPIO_SEL_39, ESP_EXT1_WAKEUP_ANY_LOW);
-#elif defined(T5_47_PLUS)
+#elif defined(T5_47_PLUS) || defined(T5_47_PLUS_V2)
             esp_sleep_enable_ext1_wakeup(GPIO_SEL_21, ESP_EXT1_WAKEUP_ANY_LOW);
 #endif
             esp_deep_sleep_start();

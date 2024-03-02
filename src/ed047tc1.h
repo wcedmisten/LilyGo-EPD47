@@ -16,8 +16,34 @@ extern "C" {
 /******************************************************************************/
 /***        macro definitions                                               ***/
 /******************************************************************************/
+#if T5_47_PLUS_V2
+/* Config Reggister Control */
+#define CFG_DATA GPIO_NUM_13
+#define CFG_CLK GPIO_NUM_12
+#define CFG_STR GPIO_NUM_0
 
-#if CONFIG_IDF_TARGET_ESP32
+/* Control Lines */
+#define CKV GPIO_NUM_38
+#define STH GPIO_NUM_40
+
+#define EP_STV GPIO_NUM_45
+#define EP_LE  GPIO_NUM_48
+
+/* Edges */
+#define CKH GPIO_NUM_41
+
+/* Data Lines */
+#define D7 GPIO_NUM_7
+#define D6 GPIO_NUM_6
+#define D5 GPIO_NUM_5
+#define D4 GPIO_NUM_4
+#define D3 GPIO_NUM_3
+#define D2 GPIO_NUM_2
+#define D1 GPIO_NUM_1
+#define D0 GPIO_NUM_8
+
+
+#elif CONFIG_IDF_TARGET_ESP32
 
 /* Config Reggister Control */
 #define CFG_DATA GPIO_NUM_23
