@@ -15,14 +15,19 @@
 #if defined(T5_47_PLUS) || defined(T5_47_PLUS_V2)
 #include "pcf8563.h"
 #include <Wire.h>
+#include <TouchDrvGT911.hpp>
 #endif
 
+#define TOUCH 1
 
 #if defined(T5_47_PLUS) || defined(T5_47_PLUS_V2)
 PCF8563_Class rtc;
+TouchDrvGT911 touch;
 #endif
 
 int vref = 1100;
+int16_t  x, y;
+int16_t count;
 
 void setup()
 {
@@ -45,8 +50,8 @@ void setup()
     } else {
         Serial.println("SD init success");
         snprintf(buf, 128,
-                 "➸ Detected SdCard insert:%.2f GB",
-                 SD.cardSize() / 1024.0 / 1024.0 / 1024.0
+                "➸ Detected SdCard insert:%.2f GB",
+                SD.cardSize() / 1024.0 / 1024.0 / 1024.0
                 );
     }
 
@@ -54,33 +59,62 @@ void setup()
     esp_adc_cal_characteristics_t adc_chars;
 #if defined(T5_47)
     esp_adc_cal_value_t val_type = esp_adc_cal_characterize(
-                                       ADC_UNIT_1,
-                                       ADC_ATTEN_DB_11,
-                                       ADC_WIDTH_BIT_12,
-                                       1100,
-                                       &adc_chars
-                                   );
+                                        ADC_UNIT_1,
+                                        ADC_ATTEN_DB_11,
+                                        ADC_WIDTH_BIT_12,
+                                        1100,
+                                        &adc_chars
+                                    );
 #else
     esp_adc_cal_value_t val_type = esp_adc_cal_characterize(
-                                       ADC_UNIT_2,
-                                       ADC_ATTEN_DB_11,
-                                       ADC_WIDTH_BIT_12,
-                                       1100,
-                                       &adc_chars
-                                   );
+                                        ADC_UNIT_2,
+                                        ADC_ATTEN_DB_11,
+                                        ADC_WIDTH_BIT_12,
+                                        1100,
+                                        &adc_chars
+                                    );
 #endif
     if (val_type == ESP_ADC_CAL_VAL_EFUSE_VREF) {
         Serial.printf("eFuse Vref: %umV\r\n", adc_chars.vref);
         vref = adc_chars.vref;
     }
 
+    epd_init();
+    const char *string1;
 #if defined(T5_47_PLUS) || defined(T5_47_PLUS_V2)
     Wire.begin(TOUCH_SDA, TOUCH_SCL);
     rtc.begin();
     rtc.setDateTime(2022, 6, 30, 0, 0, 0);
+#if defined(TOUCH)
+uint8_t touchAddress = 0;
+    Wire.beginTransmission(0x14);
+    if (Wire.endTransmission() == 0) {
+        touchAddress = 0x14;
+    }
+    Wire.beginTransmission(0x5D);
+    if (Wire.endTransmission() == 0) {
+        touchAddress = 0x5D;
+    }
+    if (touchAddress == 0) {
+            Serial.println("Failed to find GT911 - check your wiring!");
+            delay(1000);
+            string1 = "➸ Touch status: False  \n";
+    }
+    touch.setPins(-1, TOUCH_INT);
+    if (!touch.begin(Wire,touchAddress,TOUCH_SDA, TOUCH_SCL)) {
+            Serial.println("Failed to find GT911 - check your wiring!");
+            delay(1000);
+            string1 = "➸ Touch status: False  \n";
+    }
+    else
+    {
+        string1 = "➸ Touch status: True  \n";
+    }
+    touch.setMaxCoordinates(EPD_WIDTH, EPD_HEIGHT);
+    touch.setSwapXY(true);
+    touch.setMirrorXY(false, true);
 #endif
-
-    epd_init();
+#endif
 
     Rect_t area = {
         .x = 230,
@@ -99,8 +133,9 @@ void setup()
     int cursor_x = 200;
     int cursor_y = 250;
 
-    const char *string1 = "➸ 16 color grayscale  😀 \n";
-    const char *string2 = "➸ Use with 4.7\" EPDs 😍 \n";
+    // const char *string1 = "➸ 16 color grayscale  😀 \n";
+    // const char *string2 = "➸ Use with 4.7\" EPDs 😍 \n";
+    const char *string2 = "➸ 16 color grayscale  😀 \n";
     const char *string3 = "➸ High-quality font rendering ✎🙋";
     const char *string4 = "➸ ~630ms for full frame draw 🚀\n";
 
@@ -132,14 +167,19 @@ void loop()
 {
     // When reading the battery voltage, POWER_EN must be turned on
     epd_poweron();
-    delay(10); // Make adc measurement more accurate
+    // delay(10); // Make adc measurement more accurate
     uint16_t v = analogRead(BATT_PIN);
     float battery_voltage = ((float)v / 4095.0) * 2.0 * 3.3 * (vref / 1000.0);
     String voltage = "➸ Voltage: " + String(battery_voltage) + "V";
 #if defined(T5_47_PLUS) || defined(T5_47_PLUS_V2)
     voltage = voltage + String(" (") + rtc.formatDateTime(PCF_TIMEFORMAT_YYYY_MM_DD_H_M_S) + String(")");
+#if defined(TOUCH)
+    uint8_t touched = touch.getPoint(&x, &y);   
+    if (touched) {
+        Serial.printf("X:%d Y:%d\n", x, y);
+    }
 #endif
-    Serial.println(voltage);
+#endif
 
     Rect_t area = {
         .x = 200,
@@ -154,9 +194,13 @@ void loop()
 
     int cursor_x = 200;
     int cursor_y = 500;
-    epd_clear_area(area);
-    writeln((GFXfont *)&FiraSans, (char *)voltage.c_str(), &cursor_x, &cursor_y, NULL);
-
+    
+    if (count %2000 == 0)
+    {
+        Serial.println(voltage);
+        epd_clear_area(area);
+        writeln((GFXfont *)&FiraSans, (char *)voltage.c_str(), &cursor_x, &cursor_y, NULL);
+    }
 
     /**
      * There are two ways to close
@@ -170,6 +214,6 @@ void loop()
      * POWER_EN control and also turn off the blue LED light
      */
     epd_poweroff_all();
-
-    delay(5000);
+    count++;
+    // delay(5000);
 }

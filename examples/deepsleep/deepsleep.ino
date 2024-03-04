@@ -199,7 +199,13 @@ void loop()
     // esp_sleep_enable_ext0_wakeup((gpio_num_t)BUTTON_1, LOW); //1 = High, 0 = Low
 
     //If you were to use ext1, you would use it like
-    esp_sleep_enable_ext1_wakeup(BUTTON_PIN_BITMASK, ESP_EXT1_WAKEUP_ALL_LOW);
+    // esp_sleep_enable_ext1_wakeup(BUTTON_PIN_BITMASK, ESP_EXT1_WAKEUP_ALL_LOW);
+#if defined(T5_47)
+        // Set to wake up by GPIO39
+        esp_sleep_enable_ext1_wakeup(GPIO_SEL_39, ESP_EXT1_WAKEUP_ALL_LOW);
+#elif defined(T5_47_PLUS) || defined(T5_47_PLUS_V2)
+        esp_sleep_enable_ext1_wakeup(GPIO_SEL_21, ESP_EXT1_WAKEUP_ALL_LOW);
+#endif
 
     //Go to sleep now
     Serial.println("Going to sleep now");
