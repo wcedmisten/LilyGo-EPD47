@@ -1,7 +1,7 @@
 <h1 align = "center">🌟LilyGo E-Paper 🌟</h1>
 
 ## **[English](./README.MD) | 中文**
-
+- **T5-4.7-ESP32** 版本在[这里](https://github.com/Xinyuan-LilyGO/LilyGo-EPD47)
 - 驱动与示例程序来源于[vroland/epdiy](https://github.com/vroland/epdiy)
 
 ## 文档
